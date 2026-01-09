@@ -16,6 +16,6 @@ jobs:
       - name: Run Agentic Decision Ledger gate
         uses: ./integrations/github-action
         with:
-          contract: decisions/contracts/DC-2026-001.yaml
+          contract: decisions/contracts/DC-REPO-001.yaml
           strict: "true"
           artifacts-dir: artifacts
