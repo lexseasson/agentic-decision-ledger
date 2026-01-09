@@ -16,3 +16,6 @@ constraints:
       - "trading/"
 success_criteria:
   - "CI blocks if scope expands to trading paths"
+alternatives_rejected:
+  - option: "Log-only (forensic) without commit-time contract"
+    rejected_because: "Does not preserve intent/constraints at decision time; incidents become archaeology."

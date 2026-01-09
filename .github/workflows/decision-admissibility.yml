@@ -10,9 +10,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Run Agentic Decision Ledger gate
-        uses: ././/integrations/github-action
+        uses: ./integrations/github-action
         with:
           contract: decisions/contracts/DC-2026-001.yaml
           strict: "true"
