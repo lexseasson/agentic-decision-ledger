@@ -22,17 +22,7 @@ assumptions:
 constraints:
   bounded_authority:
     can_write_paths:
-      - "README.md"
-      - "LICENSE"
-      - "docs/"
-      - "decisions/contracts/"
-      - "artifacts/"
-      - ".github/workflows/"
-      - "integrations/github-action/"
-      - "adl/"
-      - "tests/"
-      - "pyproject.toml"
-      - "examples/"
+      - "data/ticks/"
     cannot_touch:
       - ".github/workflows/"
       - "secrets/"
