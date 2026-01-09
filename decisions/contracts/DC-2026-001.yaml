@@ -1,21 +1,37 @@
 decision_id: DC-2026-001
-title: "Enable live price collector for BTC/USDT with bounded authority"
+title: "Enable live price collector with bounded authority"
+
 owner:
   team: "platform"
-  approver: "human:@maintainer_handle"
+  approver: "human:@maintainer"
+
 intent:
-  goal: "Collect live prices for BTC/USDT to support latency KPIs and downstream signals."
+  goal: "Collect live prices to support latency KPIs."
+  scope:
+    includes:
+      - "collector websocket client"
+      - "raw tick storage"
+    excludes:
+      - "trade execution"
+      - "portfolio actions"
+
+assumptions:
+  - "Websocket endpoint is stable within SLO variance."
+  - "Tick data is non-PII."
+
 constraints:
   bounded_authority:
     can_write_paths:
       - "data/ticks/"
-      - "artifacts/snapshots/"
     cannot_touch:
       - ".github/workflows/"
       - "secrets/"
       - "trading/"
-success_criteria:
-  - "CI blocks if scope expands to trading paths"
+
 alternatives_rejected:
-  - option: "Log-only (forensic) without commit-time contract"
-    rejected_because: "Does not preserve intent/constraints at decision time; incidents become archaeology."
+  - option: "Log-only approach"
+    rejected_because: "Does not encode admissibility."
+
+success_criteria:
+  - "Snapshot and decision record generated"
+  - "CI blocks if scope expands"
