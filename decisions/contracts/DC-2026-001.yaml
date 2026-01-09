@@ -22,8 +22,11 @@ assumptions:
 constraints:
   bounded_authority:
     can_write_paths:
-      - "data/ticks/"
-      - "README.md"
+      - "docs/"
+      - "examples/"
+      - "scripts/"
+      - "decisions/contracts/"
+      - "artifacts/"
     cannot_touch:
       - ".github/workflows/"
       - "secrets/"
