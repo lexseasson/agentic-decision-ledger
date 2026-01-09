@@ -29,6 +29,7 @@ constraints:
       - "scripts/"
       - "decisions/contracts/"
       - "artifacts/"
+      - "README.md"
     cannot_touch:
       - ".github/workflows/"
       - "secrets/"
