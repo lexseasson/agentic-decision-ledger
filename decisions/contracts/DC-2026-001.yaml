@@ -1,5 +1,6 @@
+schema_version: v0.1
 decision_id: DC-2026-001
-title: "Enable live price collector with bounded authority"
+title: "Example: enable live price collector with bounded authority"
 
 owner:
   team: "platform"
@@ -16,6 +17,7 @@ intent:
       - "portfolio actions"
 
 assumptions:
+  - "This is an example contract used for documentation/demos."
   - "Websocket endpoint is stable within SLO variance."
   - "Tick data is non-PII."
 
@@ -39,11 +41,3 @@ alternatives_rejected:
 success_criteria:
   - "Snapshot and decision record generated"
   - "CI blocks if scope expands"
-
-schema_version: v0.1
-decision_id: DC-2026-001
-title: "Example: enable live price collector with bounded authority"
-...
-assumptions:
-  - "This is an example contract used for documentation/demos."
-...
