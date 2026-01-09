@@ -48,18 +48,19 @@ You can remove it without rewriting your system.
 
 ---
 
-## Production failure categories (why this exists)
+## Why this exists (production failure categories)
 
-This control plane targets failure modes that repeat in real deployments:
+This control plane targets failure modes that appear repeatedly in real deployments:
 
-1. **Scope creep via “tiny exceptions”** (boundaries erode one PR at a time)
-2. **Post-hoc rationalization** (systems explain after the fact, not before the fact)
-3. **Unowned decisions** (no accountable owner when incidents happen)
-4. **Non-falsifiable success criteria** (nothing measurable, nothing enforceable)
-5. **Evidence drift** (metrics/assumptions change, but decisions don’t get revisited)
-6. **Self-governance deadlocks** (a gate blocks its own evolution without a maintenance path)
+- Scope creep via “tiny exceptions” (boundaries erode one PR at a time)
+- Post-hoc rationalization (systems explain after the fact, not before the fact)
+- Unowned decisions (no accountable owner when incidents happen)
+- Non-falsifiable success criteria (nothing measurable, nothing enforceable)
+- Evidence drift (metrics/assumptions change, but decisions don’t get revisited)
+- Self-governance deadlocks (a gate blocks its own evolution without a maintenance posture)
 
-The outcome is predictable: audits become archaeology and velocity collapses.
+Outcome: audits become archaeology and velocity collapses.
+
 
 ---
 
@@ -169,6 +170,11 @@ It requires decisions to **reference external evidence explicitly** (without run
 
 The gate validates **structure and falsifiability**, not business logic.  
 This keeps governance portable and audit-grade.
+
+---
+- Role: [Decision Steward](docs/decision_steward_role.md)
+- Visibility: [v0.2 Steward Visibility](docs/v0.2_steward_visibility.md)
+- Postures: [Contract postures](docs/contracts_postures.md)
 
 ---
 
