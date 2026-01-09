@@ -1,20 +1,28 @@
 schema_version: v0.1
 decision_id: DC-REPO-001
-
-intent:
-  summary: "Repo maintenance: evolve ADL engine + CI gate safely"
-  goal: "Permitir evolución del motor ADL y su CI en este repositorio, con límites explícitos."
-  scope: "self-governance / maintenance"
-  priority: "P1"
+title: "Repo maintenance: evolve ADL engine + CI gate safely"
 
 owner:
-  name: "repo-maintainers"
-  role: "maintainers"
-  authority: "merge + release"
+  team: "repo-maintainers"
+  approver: "human:@lexseasson"
+
+intent:
+  goal: "Allow self-governance changes in agentic-decision-ledger with explicit bounded authority."
+  scope:
+    includes:
+      - "adl engine changes"
+      - "github action integration"
+      - "repo workflows"
+      - "tests and docs"
+    excludes:
+      - "secrets handling"
+      - "deployment credentials"
+      - "external infra provisioning"
 
 assumptions:
-  - "Este contrato se usa SOLO para mantenimiento del repo agentic-decision-ledger."
-  - "Los contratos de instalación (drop-in) se mantienen separados y pueden ser más restrictivos."
+  - "This contract is ONLY for maintaining agentic-decision-ledger itself."
+  - "Install/demo contracts are separate and may be stricter."
+  - "No PII is processed by the gate; artifacts are repo-local."
 
 constraints:
   bounded_authority:
@@ -29,6 +37,7 @@ constraints:
       - "README.md"
       - "LICENSE"
       - ".gitignore"
+      - "artifacts/"
     cannot_touch:
       - "secrets/"
       - ".env"
@@ -36,15 +45,16 @@ constraints:
       - "private_keys/"
       - "id_rsa"
       - "id_ed25519"
+      - ".github/workflows/production-deploy.yml"
 
 alternatives_rejected:
-  - option: "Use DC-2026-001 (install/demo contract) for this repo"
-    rejected_because: "Bloquea cambios legítimos en CI/workflows y en el motor ADL (self-governance imposible)."
+  - option: "Use the install/demo contract to govern this repo"
+    rejected_because: "It would block legitimate self-governance changes (workflows + engine), preventing safe evolution."
+  - option: "Rely on logs only"
+    rejected_because: "Logs do not encode admissibility; audits degrade into post-hoc reconstruction."
 
 success_criteria:
-  - "CI pasa: ruff + mypy + pytest"
-  - "adl gate calcula diff determinístico en GitHub Actions (base..head)"
-  - "Artifacts se generan en `adl record` y se suben por CI"
-
-
-
+  - "CI passes: ruff + mypy + pytest"
+  - "Gate computes changed_paths deterministically in GitHub Actions"
+  - "adl record emits decision_record + snapshot artifacts"
+  - "CI blocks if forbidden paths are modified"
