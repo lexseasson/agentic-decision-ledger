@@ -14,7 +14,7 @@ inputs:
     default: "decisions/contracts/**/*.yaml"
 
   maintenance-contract:
-    description: "Fallback contract for self-governance / repo maintenance."
+    description: "Contract for self-governance / repo maintenance (bootstrap posture)."
     required: false
     default: "decisions/contracts/DC-REPO-001.yaml"
 
@@ -41,18 +41,19 @@ runs:
         python -m pip install --upgrade pip
         python -m pip install ".[dev]"
 
-    - name: Determine contracts to evaluate
+    - name: Determine contracts to evaluate (route install vs maintenance)
       id: contracts
       shell: bash
       run: |
         set -euo pipefail
 
         INPUT_CONTRACT="${{ inputs.contract }}"
-        GLOB="${{ inputs.contracts-glob }}"
         MAINT="${{ inputs.maintenance-contract }}"
 
+        # 1) Explicit override
         if [ -n "$INPUT_CONTRACT" ]; then
           echo "contracts=$INPUT_CONTRACT" >> "$GITHUB_OUTPUT"
+          echo "route=explicit" >> "$GITHUB_OUTPUT"
           exit 0
         fi
 
@@ -64,19 +65,38 @@ runs:
           BASE_SHA="$(git rev-parse HEAD~1 2>/dev/null || echo '')"
         fi
 
-        CHANGED_CONTRACTS=""
+        CHANGED=""
         if [ -n "${BASE_SHA:-}" ]; then
-          CHANGED_CONTRACTS="$(git diff --name-only "$BASE_SHA" "$HEAD_SHA" | grep -E '^decisions/contracts/.*\.ya?ml$' || true)"
+          CHANGED="$(git diff --name-only "$BASE_SHA" "$HEAD_SHA" || true)"
         fi
+
+        echo "changed_paths<<EOF" >> "$GITHUB_OUTPUT"
+        echo "$CHANGED" >> "$GITHUB_OUTPUT"
+        echo "EOF" >> "$GITHUB_OUTPUT"
+
+        # 2) Governance paths mean "maintenance posture"
+        # These are the paths that define or enforce governance itself.
+        GOVERNANCE_REGEX='^(\.github/workflows/|integrations/github-action/|adl/engine/|adl/schema/|pyproject\.toml|tests/)'
+
+        if echo "$CHANGED" | grep -Eq "$GOVERNANCE_REGEX"; then
+          echo "Governance change detected. Routing to maintenance contract: $MAINT"
+          echo "contracts=$MAINT" >> "$GITHUB_OUTPUT"
+          echo "route=maintenance" >> "$GITHUB_OUTPUT"
+          exit 0
+        fi
+
+        # 3) Otherwise: run any changed decision contracts, else fallback to maintenance
+        CHANGED_CONTRACTS="$(echo "$CHANGED" | grep -E '^decisions/contracts/.*\.ya?ml$' || true)"
 
         if [ -z "$CHANGED_CONTRACTS" ]; then
           echo "No contract files changed. Falling back to maintenance contract: $MAINT"
           echo "contracts=$MAINT" >> "$GITHUB_OUTPUT"
+          echo "route=fallback_maintenance" >> "$GITHUB_OUTPUT"
         else
           echo "Changed contracts:"
           echo "$CHANGED_CONTRACTS"
-          # Convert newline list to space-separated
           echo "contracts=$(echo "$CHANGED_CONTRACTS" | tr '\n' ' ')" >> "$GITHUB_OUTPUT"
+          echo "route=changed_contracts" >> "$GITHUB_OUTPUT"
         fi
 
     - name: Run admissibility gate (record + artifacts)
@@ -86,11 +106,18 @@ runs:
         STRICT="${{ inputs.strict }}"
         ART_DIR="${{ inputs.artifacts-dir }}"
         CONTRACTS="${{ steps.contracts.outputs.contracts }}"
+        ROUTE="${{ steps.contracts.outputs.route }}"
 
+        echo "Route: $ROUTE"
         echo "Evaluating contracts: $CONTRACTS"
+
         for c in $CONTRACTS; do
           echo "==> adl record --contract $c"
-          adl record --contract "$c" --strict --artifacts-dir "$ART_DIR"
+          if [ "$STRICT" = "true" ]; then
+            adl record --contract "$c" --strict --artifacts-dir "$ART_DIR"
+          else
+            adl record --contract "$c" --non-strict --artifacts-dir "$ART_DIR"
+          fi
         done
 
     - name: Upload artifacts
