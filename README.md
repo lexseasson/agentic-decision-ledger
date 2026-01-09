@@ -67,6 +67,16 @@ Most systems log execution. This layer governs admissibility.
 This repo ships the minimal rails to implement these layers without imposing an agent framework.
 
 ---
+## Bootstrap vs install contracts (production reality)
+
+A single gate cannot govern its own evolution using the same contract it enforces for downstream repos.
+
+This repo ships two contract classes:
+
+- **Repo maintenance contract** (self-governance): allows changes to `adl/` and `.github/workflows/` under explicit bounded authority.
+- **Install/demo contract** (drop-in): demonstrates how to govern agent changes in a target repo without allowing workflow or secret surface expansion.
+
+This separation is the practical version of **authorization semantics vs execution traces** applied to real lifecycle ownership.
 
 ## Quick demo outcomes (v0.1)
 v0.1 includes two runnable paths:
