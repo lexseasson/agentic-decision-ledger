@@ -1,0 +1,30 @@
+decision_id: DC-EX-HAPPY-001
+title: "Happy path demo: generate artifacts under bounded authority"
+owner:
+  team: "demo"
+  approver: "human:@maintainer_handle"
+intent:
+  goal: "Demonstrate admissible change that stays within allowed paths and produces artifacts."
+  scope:
+    includes:
+      - "docs/ changes"
+      - "artifact generation"
+    excludes:
+      - ".github/workflows changes"
+assumptions:
+  - "Demo repo is a git repo and can compute diffs."
+constraints:
+  bounded_authority:
+    can_write_paths:
+      - "docs/"
+      - "artifacts/"
+    cannot_touch:
+      - ".github/workflows/"
+      - "secrets/"
+      - "trading/"
+alternatives_rejected:
+  - option: "log-only demo"
+    rejected_because: "does not demonstrate commit-time admissibility."
+success_criteria:
+  - "CI blocks if forbidden paths are touched"
+  - "adl record emits decision_record and snapshot artifacts"

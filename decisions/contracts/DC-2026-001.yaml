@@ -1,0 +1,18 @@
+decision_id: DC-2026-001
+title: "Enable live price collector for BTC/USDT with bounded authority"
+owner:
+  team: "platform"
+  approver: "human:@maintainer_handle"
+intent:
+  goal: "Collect live prices for BTC/USDT to support latency KPIs and downstream signals."
+constraints:
+  bounded_authority:
+    can_write_paths:
+      - "data/ticks/"
+      - "artifacts/snapshots/"
+    cannot_touch:
+      - ".github/workflows/"
+      - "secrets/"
+      - "trading/"
+success_criteria:
+  - "CI blocks if scope expands to trading paths"

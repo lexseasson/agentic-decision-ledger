@@ -1,0 +1,56 @@
+[build-system]
+requires = ["hatchling>=1.25.0"]
+build-backend = "hatchling.build"
+
+[project]
+name = "agentic-decision-ledger"
+version = "0.1.0"
+description = "Decision admissibility gate + decision records for agentic repositories."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "Apache-2.0" }
+authors = [{ name = "Your Name" }]
+dependencies = [
+  "typer>=0.12.3",
+  "PyYAML>=6.0.1",
+  "jsonschema>=4.22.0",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.2.0",
+  "ruff>=0.5.0",
+  "mypy>=1.10.0",
+  "types-PyYAML>=6.0.12.20240808",
+  "types-jsonschema>=4.23.0.20240813",
+]
+
+[project.scripts]
+adl = "adl.cli:app"
+
+[tool.hatch.build.targets.wheel]
+packages = ["adl"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "SIM"]
+ignore = []
+
+[tool.ruff.lint.per-file-ignores]
+"adl/cli.py" = ["B008"]
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_ignores = true
+warn_redundant_casts = true
+no_implicit_optional = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
