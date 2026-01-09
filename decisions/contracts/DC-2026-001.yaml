@@ -39,3 +39,11 @@ alternatives_rejected:
 success_criteria:
   - "Snapshot and decision record generated"
   - "CI blocks if scope expands"
+
+schema_version: v0.1
+decision_id: DC-2026-001
+title: "Example: enable live price collector with bounded authority"
+...
+assumptions:
+  - "This is an example contract used for documentation/demos."
+...
