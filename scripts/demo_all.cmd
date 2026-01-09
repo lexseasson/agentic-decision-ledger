@@ -8,18 +8,6 @@ if errorlevel 1 (
   exit /b 1
 )
 
-REM Abort if workspace not clean (protect user)
-git diff --quiet
-if errorlevel 1 (
-  echo ERROR: working tree has unstaged changes. Please commit/stash first.
-  exit /b 1
-)
-git diff --cached --quiet
-if errorlevel 1 (
-  echo ERROR: index has staged changes. Please commit/stash first.
-  exit /b 1
-)
-
 echo Running happy path...
 call "examples\happy_path\run_demo.cmd"
 if errorlevel 1 (
