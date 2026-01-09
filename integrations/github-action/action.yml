@@ -1,49 +1,103 @@
 name: "Agentic Decision Ledger Gate"
-description: "Commit-time decision admissibility gate: validate contract, evaluate boundaries, emit artifacts."
+description: "Commit-time decision admissibility gate + artifact emission"
+author: "agentic-decision-ledger"
 
 inputs:
   contract:
-    description: "Path to Decision Contract YAML"
-    required: true
-  python-version:
-    description: "Python version"
+    description: "Single Decision Contract path (optional). If set, overrides autodetection."
     required: false
-    default: "3.11"
-  artifacts-dir:
-    description: "Artifacts output directory"
+    default: ""
+
+  contracts-glob:
+    description: "Glob to search decision contracts for autodetection."
     required: false
-    default: "artifacts"
+    default: "decisions/contracts/**/*.yaml"
+
+  maintenance-contract:
+    description: "Fallback contract for self-governance / repo maintenance."
+    required: false
+    default: "decisions/contracts/DC-REPO-001.yaml"
+
   strict:
-    description: "Strict mode: block on warnings"
+    description: "Strict mode blocks on warnings and schema issues."
     required: false
     default: "true"
+
+  artifacts-dir:
+    description: "Directory to write artifacts."
+    required: false
+    default: "artifacts"
 
 runs:
   using: "composite"
   steps:
-    - name: Set up Python
-      uses: actions/setup-python@v5
+    - uses: actions/setup-python@v5
       with:
-        python-version: ${{ inputs.python-version }}
+        python-version: "3.11"
 
-    - name: Install package
+    - name: Install agentic-decision-ledger
       shell: bash
       run: |
         python -m pip install --upgrade pip
-        python -m pip install .
-        python -m pip install .[dev]
+        python -m pip install ".[dev]"
 
-    - name: Run admissibility gate (record)
+    - name: Determine contracts to evaluate
+      id: contracts
       shell: bash
       run: |
-        if [ "${{ inputs.strict }}" = "true" ]; then
-          adl record --contract "${{ inputs.contract }}" --artifacts-dir "${{ inputs.artifacts-dir }}" --strict
-        else
-          adl record --contract "${{ inputs.contract }}" --artifacts-dir "${{ inputs.artifacts-dir }}" --non-strict
+        set -euo pipefail
+
+        INPUT_CONTRACT="${{ inputs.contract }}"
+        GLOB="${{ inputs.contracts-glob }}"
+        MAINT="${{ inputs.maintenance-contract }}"
+
+        if [ -n "$INPUT_CONTRACT" ]; then
+          echo "contracts=$INPUT_CONTRACT" >> "$GITHUB_OUTPUT"
+          exit 0
         fi
+
+        BASE_SHA="${{ github.event.pull_request.base.sha }}"
+        HEAD_SHA="${{ github.sha }}"
+
+        # If not a PR, fall back to "last commit" diff
+        if [ -z "${BASE_SHA:-}" ]; then
+          BASE_SHA="$(git rev-parse HEAD~1 2>/dev/null || echo '')"
+        fi
+
+        CHANGED_CONTRACTS=""
+        if [ -n "${BASE_SHA:-}" ]; then
+          CHANGED_CONTRACTS="$(git diff --name-only "$BASE_SHA" "$HEAD_SHA" | grep -E '^decisions/contracts/.*\.ya?ml$' || true)"
+        fi
+
+        if [ -z "$CHANGED_CONTRACTS" ]; then
+          echo "No contract files changed. Falling back to maintenance contract: $MAINT"
+          echo "contracts=$MAINT" >> "$GITHUB_OUTPUT"
+        else
+          echo "Changed contracts:"
+          echo "$CHANGED_CONTRACTS"
+          # Convert newline list to space-separated
+          echo "contracts=$(echo "$CHANGED_CONTRACTS" | tr '\n' ' ')" >> "$GITHUB_OUTPUT"
+        fi
+
+    - name: Run admissibility gate (record + artifacts)
+      shell: bash
+      run: |
+        set -euo pipefail
+        STRICT="${{ inputs.strict }}"
+        ART_DIR="${{ inputs.artifacts-dir }}"
+        CONTRACTS="${{ steps.contracts.outputs.contracts }}"
+
+        echo "Evaluating contracts: $CONTRACTS"
+        for c in $CONTRACTS; do
+          echo "==> adl record --contract $c"
+          adl record --contract "$c" --strict --artifacts-dir "$ART_DIR"
+        done
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
+      if: always()
       with:
         name: adl-artifacts
-        path: ${{ inputs.artifacts-dir }}
+        path: |
+          artifacts/decision_records/
+          artifacts/snapshots/

@@ -1,0 +1,42 @@
+schema_version: v0.1
+decision_id: DC-INSTALL-DEMO-001
+title: "Install demo: bounded change in docs only (drop-in posture)"
+
+owner:
+  team: "demo"
+  approver: "human:@maintainer_handle"
+
+intent:
+  goal: "Demonstrate a drop-in admissibility gate that allows only docs changes."
+  scope:
+    includes:
+      - "docs edits"
+    excludes:
+      - "engine changes"
+      - "workflows"
+      - "secrets"
+      - "execution code"
+
+assumptions:
+  - "This contract is a demo install posture for target repos."
+  - "All changes outside docs are out-of-scope."
+
+constraints:
+  bounded_authority:
+    can_write_paths:
+      - "docs/"
+      - "artifacts/"
+    cannot_touch:
+      - ".github/workflows/"
+      - "adl/"
+      - "integrations/"
+      - "secrets/"
+      - "trading/"
+
+alternatives_rejected:
+  - option: "Allow workflows in install demo"
+    rejected_because: "Would defeat bounded authority; install posture should be strict."
+
+success_criteria:
+  - "CI admits docs-only changes"
+  - "CI blocks if workflows or engine paths are touched"

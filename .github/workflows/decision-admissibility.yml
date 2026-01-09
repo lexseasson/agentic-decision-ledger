@@ -5,6 +5,9 @@ on:
   push:
     branches: [ main ]
 
+permissions:
+  contents: read
+
 jobs:
   gate:
     runs-on: ubuntu-latest
@@ -13,9 +16,10 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Run Agentic Decision Ledger gate
+      - name: Run Agentic Decision Ledger gate (autodetect contracts)
         uses: ./integrations/github-action
         with:
-          contract: decisions/contracts/DC-REPO-001.yaml
           strict: "true"
           artifacts-dir: artifacts
+          contracts-glob: "decisions/contracts/**/*.yaml"
+          maintenance-contract: "decisions/contracts/DC-REPO-001.yaml"
