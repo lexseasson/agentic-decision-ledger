@@ -48,6 +48,21 @@ You can remove it without rewriting your system.
 
 ---
 
+## Production failure categories (why this exists)
+
+This control plane targets failure modes that repeat in real deployments:
+
+1. **Scope creep via “tiny exceptions”** (boundaries erode one PR at a time)
+2. **Post-hoc rationalization** (systems explain after the fact, not before the fact)
+3. **Unowned decisions** (no accountable owner when incidents happen)
+4. **Non-falsifiable success criteria** (nothing measurable, nothing enforceable)
+5. **Evidence drift** (metrics/assumptions change, but decisions don’t get revisited)
+6. **Self-governance deadlocks** (a gate blocks its own evolution without a maintenance path)
+
+The outcome is predictable: audits become archaeology and velocity collapses.
+
+---
+
 ## Why logs aren’t enough (production reality)
 
 Logs answer: *what happened?*  
@@ -108,6 +123,21 @@ A **Decision Steward** preserves **intent**, **boundaries**, and **auditability*
 - keeps admissibility legible across turnover
 
 See: `docs/decision_steward_role.md`
+see `docs/v0.2_steward_visibility.md`
+
+---
+## Contract classes (so governance doesn't deadlock)
+
+This repo ships three contract patterns:
+
+- **Repository maintenance (self-governance)** — e.g. `DC-REPO-001`  
+  Allows bounded changes to the control plane itself (workflows, engine, docs, demo scripts) under explicit authority.
+
+- **Install/demo posture (drop-in)** — e.g. `DC-INSTALL-DEMO-001`  
+  Demonstrates a strict target-repo contract (docs-only) that blocks workflow/engine expansion.
+
+- **Example contracts** — e.g. `DC-2026-001`  
+  Illustrative contracts for downstream systems. They are not required for maintaining this repo.
 
 ---
 
