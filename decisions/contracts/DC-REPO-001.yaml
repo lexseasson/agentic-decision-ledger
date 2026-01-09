@@ -1,11 +1,20 @@
 schema_version: v0.1
 decision_id: DC-REPO-001
-title: "Repo maintenance: evolve ADL engine + CI gate safely"
-owner: "repo-maintainers"
-goal: "Permitir evolución del motor ADL y su CI en este repositorio, manteniendo límites explícitos."
+
+intent:
+  summary: "Repo maintenance: evolve ADL engine + CI gate safely"
+  goal: "Permitir evolución del motor ADL y su CI en este repositorio, con límites explícitos."
+  scope: "self-governance / maintenance"
+  priority: "P1"
+
+owner:
+  name: "repo-maintainers"
+  role: "maintainers"
+  authority: "merge + release"
 
 assumptions:
   - "Este contrato se usa SOLO para mantenimiento del repo agentic-decision-ledger."
+  - "Los contratos de instalación (drop-in) se mantienen separados y pueden ser más restrictivos."
 
 constraints:
   bounded_authority:
@@ -30,9 +39,12 @@ constraints:
 
 alternatives_rejected:
   - option: "Use DC-2026-001 (install/demo contract) for this repo"
-    rejected_because: "Would forbid updating CI/workflows and source code, blocking legitimate maintenance."
+    rejected_because: "Bloquea cambios legítimos en CI/workflows y en el motor ADL (self-governance imposible)."
 
 success_criteria:
-  - "CI passes: ruff + mypy + pytest"
-  - "adl gate executes deterministically in GitHub Actions (base..head diff)"
-  - "Artifacts are produced on record and uploaded by CI"
+  - "CI pasa: ruff + mypy + pytest"
+  - "adl gate calcula diff determinístico en GitHub Actions (base..head)"
+  - "Artifacts se generan en `adl record` y se suben por CI"
+
+
+
