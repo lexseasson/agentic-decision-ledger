@@ -1,60 +1,53 @@
 schema_version: v0.1
 decision_id: DC-REPO-001
-title: "Repo maintenance: evolve ADL engine + CI gate safely"
+title: "Repo maintenance: evolve governance layer safely"
 
 owner:
   team: "repo-maintainers"
-  approver: "human:@lexseasson"
+  approver: "human:@maintainer_handle"
 
 intent:
-  goal: "Allow self-governance changes in agentic-decision-ledger with explicit bounded authority."
+  goal: "Allow controlled evolution of the governance layer (CI gate, action, engine) with audit-grade artifacts."
   scope:
     includes:
-      - "adl engine changes"
-      - "github action integration"
-      - "repo workflows"
-      - "tests and docs"
+      - "CI workflow changes"
+      - "GitHub Action changes"
+      - "engine and schema changes"
+      - "tests and packaging"
     excludes:
       - "secrets handling"
-      - "deployment credentials"
-      - "external infra provisioning"
+      - "trading execution"
+      - "credential material"
 
 assumptions:
-  - "This contract is ONLY for maintaining agentic-decision-ledger itself."
-  - "Install/demo contracts are separate and may be stricter."
-  - "No PII is processed by the gate; artifacts are repo-local."
+  - "Self-governance must be explicit and reviewable."
+  - "Maintenance changes must remain bounded and auditable."
 
 constraints:
   bounded_authority:
     can_write_paths:
-      - "adl/"
-      - "integrations/"
-      - "tests/"
-      - "docs/"
-      - "decisions/"
       - ".github/workflows/"
+      - "integrations/github-action/"
+      - "adl/"
+      - "tests/"
       - "pyproject.toml"
-      - "README.md"
-      - "LICENSE"
-      - ".gitignore"
+      - "docs/"
+      - "examples/"
+      - "decisions/contracts/"
       - "artifacts/"
     cannot_touch:
       - "secrets/"
-      - ".env"
-      - ".env.*"
-      - "private_keys/"
-      - "id_rsa"
-      - "id_ed25519"
-      - ".github/workflows/production-deploy.yml"
+      - "trading/"
+  safety:
+    max_requests_per_second: 0
+    timeout_seconds: 10
+    retries: 0
 
 alternatives_rejected:
-  - option: "Use the install/demo contract to govern this repo"
-    rejected_because: "It would block legitimate self-governance changes (workflows + engine), preventing safe evolution."
-  - option: "Rely on logs only"
-    rejected_because: "Logs do not encode admissibility; audits degrade into post-hoc reconstruction."
+  - option: "Use install contracts to govern governance changes"
+    rejected_because: "Creates self-blocking evolution or implicit exemptions; both degrade audit posture."
 
 success_criteria:
-  - "CI passes: ruff + mypy + pytest"
-  - "Gate computes changed_paths deterministically in GitHub Actions"
-  - "adl record emits decision_record + snapshot artifacts"
-  - "CI blocks if forbidden paths are modified"
+  - "Governance changes emit decision_record + snapshot on every run"
+  - "Forbidden domains (secrets/trading) remain untouched"
+  - "CI remains deterministic and reproducible"
