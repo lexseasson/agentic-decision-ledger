@@ -1,0 +1,89 @@
+{
+  "schema_version": "v0.2",
+  "artifact": "contract_drift_report",
+  "generated_at_utc": "{{UTC_ISO}}",
+  "run": {
+    "repo": "{{REPO_SLUG}}",
+    "ref": "{{GIT_REF}}",
+    "base_sha": "{{BASE_SHA}}",
+    "head_sha": "{{HEAD_SHA}}",
+    "ci": {
+      "provider": "github-actions",
+      "run_id": "{{RUN_ID}}",
+      "route": "{{ROUTE}}"
+    }
+  },
+  "method": {
+    "deterministic": true,
+    "comparison": "base_vs_head_when_available_else_head_only",
+    "sensitive_fields": [
+      "owner.team",
+      "owner.approver",
+      "intent.goal",
+      "intent.scope.includes",
+      "intent.scope.excludes",
+      "constraints.bounded_authority.can_write_paths",
+      "constraints.bounded_authority.cannot_touch",
+      "constraints.safety"
+    ],
+    "drift_classification": {
+      "high": [
+        "cannot_touch removed or weakened",
+        "owner/approver changed",
+        "scope excludes removed (expands execution authority)",
+        "safety limits relaxed"
+      ],
+      "medium": [
+        "can_write_paths expanded",
+        "goal materially changed",
+        "includes expanded materially"
+      ],
+      "low": [
+        "title edits",
+        "formatting / reordering without semantic delta"
+      ]
+    }
+  },
+  "contracts": [
+    {
+      "decision_id": "DC-2026-001",
+      "path": "decisions/contracts/DC-2026-001.yaml",
+      "base_present": false,
+      "drift": {
+        "level": "none",
+        "summary": "No semantic drift detected.",
+        "deltas": [
+          {
+            "field": "constraints.bounded_authority.can_write_paths",
+            "type": "set_expansion",
+            "base": ["docs/", "decisions/contracts/", "artifacts/"],
+            "head": ["docs/", "decisions/contracts/", "artifacts/", "examples/", "scripts/"],
+            "risk": "medium",
+            "why": "Expanded write surface increases policy attack surface; requires explicit rationale."
+          }
+        ],
+        "guardrails": [
+          {
+            "type": "steward_rule",
+            "rule": "Any expansion of can_write_paths requires alternatives_rejected + owner ack.",
+            "status": "PASS"
+          }
+        ]
+      }
+    }
+  ],
+  "rollups": {
+    "drifted_contracts_count": 0,
+    "high_risk_contracts": [
+      { "decision_id": "{{DECISION_ID}}", "level": "high", "primary_field": "{{FIELD}}" }
+    ],
+    "most_common_drift_fields": [
+      { "field": "constraints.bounded_authority.can_write_paths", "count": 0 }
+    ]
+  },
+  "integrity": {
+    "inputs_hash": "sha256:{{SHA256_INPUTS}}",
+    "artifact_hash": "sha256:{{SHA256_SELF}}",
+    "reproducible": true
+  }
+}
