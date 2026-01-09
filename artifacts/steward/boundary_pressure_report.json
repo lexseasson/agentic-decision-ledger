@@ -1,0 +1,94 @@
+{
+  "schema_version": "v0.2",
+  "artifact": "boundary_pressure_report",
+  "generated_at_utc": "2026-01-09T20:15:34Z",
+
+  "run": {
+    "scm": "git",
+    "repo": "lexseasson/agentic-decision-ledger",
+    "ref": "refs/pull/123/merge",
+    "base_sha": "abc123...",
+    "head_sha": "def456...",
+    "actor": "human:@maintainer",
+    "ci": {
+      "provider": "github-actions",
+      "run_id": "20866711450",
+      "job": "gate",
+      "route": "maintenance|install_demo|example_demo|explicit|fallback_maintenance"
+    }
+  },
+
+  "contract": {
+    "decision_id": "DC-REPO-001",
+    "title": "Repo maintenance: evolve governance layer safely",
+    "owner": { "team": "repo-maintainers", "approver": "human:@maintainer_handle" },
+    "bounded_authority": {
+      "can_write_paths": ["..."],
+      "cannot_touch": ["secrets/", "trading/"]
+    }
+  },
+
+  "diff": {
+    "changed_paths": ["docs/runbook_windows.md", "scripts/demo_all.cmd"],
+    "counts": {
+      "total_changed_paths": 2,
+      "unique_top_level_dirs": 2
+    }
+  },
+
+  "findings": {
+    "forbidden_hits": [
+      { "path": ".github/workflows/_forbidden_touch.yml", "rule": "cannot_touch" }
+    ],
+    "out_of_bounds": [
+      { "path": "scripts/demo_all.cmd", "rule": "not_in_can_write_paths" }
+    ],
+    "boundary_expansion_suspects": [
+      {
+        "dimension": "can_write_paths",
+        "delta": { "added": ["scripts/"], "removed": [] },
+        "risk": "medium",
+        "why": "Expanded write surface to new top-level directory."
+      }
+    ]
+  },
+
+  "metrics": {
+    "pressure": {
+      "score_0_to_1": 0.72,
+      "level": "high",
+      "contributors": [
+        { "signal": "forbidden_touch", "weight": 0.55, "value": 1, "impact": 0.55 },
+        { "signal": "out_of_bounds", "weight": 0.25, "value": 1, "impact": 0.25 },
+        { "signal": "surface_spread", "weight": 0.20, "value": 2, "impact": 0.12 }
+      ]
+    },
+
+    "signals": {
+      "forbidden_touch_count": 1,
+      "out_of_bounds_count": 1,
+      "new_top_level_dirs_count": 1,
+      "docs_only_violation": false,
+      "contract_mutation": {
+        "changed": true,
+        "fields_changed": ["constraints.bounded_authority.can_write_paths"],
+        "risk": "medium"
+      }
+    }
+  },
+
+  "recommendations": [
+    {
+      "type": "steward_action",
+      "priority": "P0",
+      "action": "Split PR: move demo scripts under maintenance contract or route explicitly.",
+      "rationale": "Boundary pressure high due to out-of-bounds modifications."
+    }
+  ],
+
+  "integrity": {
+    "inputs_hash": "sha256:...",
+    "artifact_hash": "sha256:...",
+    "reproducible": true
+  }
+}

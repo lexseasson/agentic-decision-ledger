@@ -29,7 +29,8 @@ if any_prefix(MAINT_SURFACE):
     print("decisions/contracts/DC-REPO-001.yaml")
 else:
     # If docs-only (install demo posture)
-    if all(p.replace("\\", "/").startswith("docs/") or p.replace("\\", "/").startswith("artifacts/") for p in CHANGED):
+    if all(p.replace("\\", "/").startswith("docs/") or p.replace("\\", "/").startswith("artifacts/") 
+           for p in CHANGED):
         print("decisions/contracts/DC-INSTALL-DEMO-001.yaml")
     else:
         # Example contract for docs/examples/scripts-only changes
