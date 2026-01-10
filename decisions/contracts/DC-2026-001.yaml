@@ -1,5 +1,6 @@
+schema_version: v0.1
 decision_id: DC-2026-001
-title: "Enable live price collector with bounded authority"
+title: "Example: enable live price collector with bounded authority"
 
 owner:
   team: "platform"
@@ -16,13 +17,19 @@ intent:
       - "portfolio actions"
 
 assumptions:
+  - "This is an example contract used for documentation/demos."
   - "Websocket endpoint is stable within SLO variance."
   - "Tick data is non-PII."
 
 constraints:
   bounded_authority:
     can_write_paths:
-      - "data/ticks/"
+      - "docs/"
+      - "examples/"
+      - "scripts/"
+      - "decisions/contracts/"
+      - "artifacts/"
+      - "README.md"
     cannot_touch:
       - ".github/workflows/"
       - "secrets/"
