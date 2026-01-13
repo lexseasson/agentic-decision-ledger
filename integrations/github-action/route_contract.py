@@ -8,27 +8,28 @@ from adl.engine.diff_inspector import collect_changed_paths
 REPO_ROOT = Path(".")
 
 
-def _normalize(paths: Iterable[str]) -> list[str]:
-    return [p.replace("\\", "/") for p in paths]
+def norm(p: str) -> str:
+    return p.replace("\\", "/").lstrip("./")
 
 
-def _any_prefix(paths: list[str], prefixes: list[str]) -> bool:
+def any_prefix(paths: Iterable[str], prefixes: Iterable[str]) -> bool:
     for p in paths:
+        pp = norm(p)
         for pref in prefixes:
-            pref_norm = pref.rstrip("/")
-            if p.startswith(pref) or p == pref_norm:
+            pref_n = norm(pref)
+            if pp == pref_n.rstrip("/") or pp.startswith(pref_n):
                 return True
     return False
 
 
-def _docs_or_artifacts_only(paths: list[str]) -> bool:
+def is_docs_only(paths: list[str]) -> bool:
     if not paths:
         return False
-    return all(p.startswith("docs/") or p.startswith("artifacts/") for p in paths)
+    return all(norm(p).startswith(("docs/", "artifacts/")) for p in paths)
 
 
 def main() -> None:
-    changed = _normalize(collect_changed_paths(REPO_ROOT))
+    changed = collect_changed_paths(REPO_ROOT)
 
     maint_surface = [
         "README.md",
@@ -42,11 +43,11 @@ def main() -> None:
         "tests/",
     ]
 
-    if _any_prefix(changed, maint_surface):
+    if any_prefix(changed, maint_surface):
         print("decisions/contracts/DC-REPO-001.yaml")
         return
 
-    if _docs_or_artifacts_only(changed):
+    if is_docs_only(changed):
         print("decisions/contracts/DC-INSTALL-DEMO-001.yaml")
         return
 
