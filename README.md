@@ -48,6 +48,22 @@ You can remove it without rewriting your system.
 
 ---
 
+## Why this exists (production failure categories)
+
+This control plane targets failure modes that appear repeatedly in real deployments:
+
+- Scope creep via “tiny exceptions” (boundaries erode one PR at a time)
+- Post-hoc rationalization (systems explain after the fact, not before the fact)
+- Unowned decisions (no accountable owner when incidents happen)
+- Non-falsifiable success criteria (nothing measurable, nothing enforceable)
+- Evidence drift (metrics/assumptions change, but decisions don’t get revisited)
+- Self-governance deadlocks (a gate blocks its own evolution without a maintenance posture)
+
+Outcome: audits become archaeology and velocity collapses.
+
+
+---
+
 ## Why logs aren’t enough (production reality)
 
 Logs answer: *what happened?*  
@@ -108,6 +124,21 @@ A **Decision Steward** preserves **intent**, **boundaries**, and **auditability*
 - keeps admissibility legible across turnover
 
 See: `docs/decision_steward_role.md`
+see `docs/v0.2_steward_visibility.md`
+
+---
+## Contract classes (so governance doesn't deadlock)
+
+This repo ships three contract patterns:
+
+- **Repository maintenance (self-governance)** — e.g. `DC-REPO-001`  
+  Allows bounded changes to the control plane itself (workflows, engine, docs, demo scripts) under explicit authority.
+
+- **Install/demo posture (drop-in)** — e.g. `DC-INSTALL-DEMO-001`  
+  Demonstrates a strict target-repo contract (docs-only) that blocks workflow/engine expansion.
+
+- **Example contracts** — e.g. `DC-2026-001`  
+  Illustrative contracts for downstream systems. They are not required for maintaining this repo.
 
 ---
 
@@ -139,6 +170,11 @@ It requires decisions to **reference external evidence explicitly** (without run
 
 The gate validates **structure and falsifiability**, not business logic.  
 This keeps governance portable and audit-grade.
+
+---
+- Role: [Decision Steward](docs/decision_steward_role.md)
+- Visibility: [v0.2 Steward Visibility](docs/v0.2_steward_visibility.md)
+- Postures: [Contract postures](docs/contracts_postures.md)
 
 ---
 

@@ -1,148 +1,60 @@
-1. Silent Scope Expansion
+# Production Failure Categories (Why This Exists)
 
-Description
-An agent gradually begins to act outside its originally intended scope without explicit authorization.
+Agentic systems tend to fail in production for repeatable reasons.  
+These failures are rarely “model failures” in isolation — they are governance failures: missing intent, missing boundaries, and missing admissibility.
 
-Production Impact
+`agentic-decision-ledger` targets the failure modes that repeatedly show up in real deployments:
 
-Small changes accumulate into system-wide risk.
+## 1) Scope creep via “tiny exceptions”
+Boundaries erode one PR at a time:
+- “just this once”
+- “temporary”
+- “it’s only a workflow tweak”
+- “we’ll clean it up later”
 
-Reviews miss the inflection point where behavior becomes unsafe.
+Over time, the system’s effective authority silently expands beyond what anyone can defend.
 
-Rollbacks become non-local and expensive.
+## 2) Post-hoc rationalization
+The system can explain *after* execution, but cannot justify *before* execution:
+- approvals become narrative
+- audits become storytelling
+- incident reviews become archaeology
 
-Root Cause
-Implicit authority inferred from past success rather than explicitly bounded intent.
+Commit-time admissibility forces justification before the change advances.
 
-Stewardship Mitigation
+## 3) Unowned decisions
+No accountable owner exists when production breaks:
+- unclear approver
+- unclear decision intent
+- unclear rollback authority
 
-Explicit bounded authority in Decision Contracts.
+Decision Contracts make ownership explicit and enforceable.
 
-Commit-time diff inspection against declared scope.
+## 4) Non-falsifiable success criteria
+Success criteria are vague or cosmetic:
+- “improve performance”
+- “be more robust”
+- “reduce errors”
 
-Boundary pressure tracking over time.
+If it can’t be falsified, it can’t be governed.
 
-2. Post-hoc Justification Drift
+## 5) Evidence drift
+Assumptions, metrics, and external conditions change, but decisions don’t:
+- a decision stays “approved” long after its evidence base is invalid
+- teams inherit decisions without inheriting intent
 
-Description
-Rationales for decisions are reconstructed after outcomes are known.
+The result is governance debt.
 
-Production Impact
+## 6) Self-governance deadlocks
+A gate cannot safely govern its own evolution with the same constraints it enforces downstream.
 
-Audit narratives change depending on audience.
+You need:
+- **maintenance contracts** for evolving the control plane
+- **install contracts** for governing downstream changes
 
-Trust erodes across engineering, product, and leadership.
+## The predictable outcome if you ignore these
+Audits become archaeology.  
+Turnover destroys context.  
+Velocity collapses under review friction.
 
-Incident response becomes defensive rather than diagnostic.
-
-Root Cause
-Intent is stored informally (prompts, chat history, tribal knowledge).
-
-Stewardship Mitigation
-
-Intent captured ex-ante as a contractual artifact.
-
-Alternatives rejected must be recorded before execution.
-
-Decision records are immutable and versioned.
-
-3. Unowned Decisions
-
-Description
-No clear human owner can be identified for a decision that materially affected the system.
-
-Production Impact
-
-Escalations stall.
-
-Accountability diffuses.
-
-Future decisions become overly conservative.
-
-Root Cause
-Automation without explicit ownership semantics.
-
-Stewardship Mitigation
-
-Mandatory owner and approver fields in every Decision Contract.
-
-Ownership treated as a governance primitive, not metadata.
-
-4. Non-falsifiable Success
-
-Description
-A decision is declared “successful” without criteria that could ever be disproven.
-
-Production Impact
-
-Systems cannot be objectively evaluated.
-
-Failures hide behind narrative success.
-
-Continuous improvement stalls.
-
-Root Cause
-Success defined aspirationally instead of operationally.
-
-Stewardship Mitigation
-
-Enforced falsifiable success criteria.
-
-Criteria evaluated independently of narrative outcomes.
-
-Success treated as a measurable claim, not a belief.
-
-5. Governance Self-Deadlock
-
-Description
-The governance mechanism cannot evolve without bypassing itself.
-
-Production Impact
-
-Informal exceptions proliferate.
-
-Controls become performative.
-
-Teams learn to work around governance instead of with it.
-
-Root Cause
-A single contract class attempts to govern both itself and downstream systems.
-
-Stewardship Mitigation
-
-Explicit separation between:
-
-Bootstrap / maintenance contracts
-
-Install / downstream contracts
-
-Governance evolution treated as a first-class decision domain.
-
-6. Archaeological Incidents
-
-Description
-Weeks or months after an incident, teams must reconstruct intent from logs and artifacts never designed to explain “why”.
-
-Production Impact
-
-Incident reviews turn speculative.
-
-Lessons learned are shallow or incorrect.
-
-Organizational memory decays.
-
-Root Cause
-Logs optimized for execution, not admissibility.
-
-Stewardship Mitigation
-
-Decision Records and Snapshots as primary artifacts.
-
-Intent preserved alongside execution traces.
-
-Replay with meaning, not just data.
-
-Summary
-
-These failures are not edge cases.
-They are structural outcomes of agentic systems without decision stewardship.
+This project makes legibility cheap and drift expensive.

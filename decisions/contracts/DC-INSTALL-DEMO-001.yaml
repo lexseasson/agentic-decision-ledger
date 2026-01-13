@@ -1,6 +1,6 @@
 schema_version: v0.1
 decision_id: DC-INSTALL-DEMO-001
-title: "Install demo: bounded change in docs only (drop-in posture)"
+title: "Install demo: docs-only admissibility (drop-in posture)"
 
 owner:
   team: "demo"
@@ -13,13 +13,13 @@ intent:
       - "docs edits"
     excludes:
       - "engine changes"
-      - "workflows"
+      - "workflow changes"
       - "secrets"
       - "execution code"
 
 assumptions:
-  - "This contract is a demo install posture for target repos."
-  - "All changes outside docs are out-of-scope."
+  - "This contract demonstrates the strict install posture for a target repository."
+  - "Any change outside docs/ is out-of-scope."
 
 constraints:
   bounded_authority:

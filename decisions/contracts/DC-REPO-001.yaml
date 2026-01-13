@@ -14,10 +14,14 @@ intent:
       - "GitHub Action changes"
       - "engine and schema changes"
       - "tests and packaging"
+      - "repo docs and runbooks"
+      - "demo scripts and examples"
+      - "repo hygiene root files"
     excludes:
       - "secrets handling"
       - "trading execution"
       - "credential material"
+      - ".git internal objects"
 
 assumptions:
   - "Self-governance must be explicit and reviewable."
@@ -26,61 +30,35 @@ assumptions:
 constraints:
   bounded_authority:
     can_write_paths:
-    schema_version: v0.1
-decision_id: DC-REPO-001
-title: "Repo maintenance: evolve governance layer safely"
-
-owner:
-  team: "repo-maintainers"
-  approver: "human:@maintainer_handle"
-
-intent:
-  goal: "Allow controlled evolution of the governance layer (CI gate, action, engine) with audit-grade artifacts."
-  scope:
-    includes:
-      - "CI workflow changes"
-      - "GitHub Action changes"
-      - "engine and schema changes"
-      - "tests and packaging"
-    excludes:
-      - "secrets handling"
-      - "trading execution"
-      - "credential material"
-
-assumptions:
-  - "Self-governance must be explicit and reviewable."
-  - "Maintenance changes must remain bounded and auditable."
-
-constraints:
-  bounded_authority:
-    can_write_paths:
-      - "README.md"
-      - "LICENSE"
+      # Governance/control-plane surfaces
       - ".github/workflows/"
       - "integrations/github-action/"
       - "adl/"
       - "tests/"
       - "pyproject.toml"
+
+      # Product documentation + demos (still maintenance-governed)
       - "docs/"
       - "examples/"
+      - "scripts/"
+      - "README.md"
       - "decisions/contracts/"
       - "artifacts/"
+
+      # Root hygiene files (explicit allowlist)
+      - ".gitignore"
+      - ".gitattributes"
+      - ".editorconfig"
+
     cannot_touch:
       - "secrets/"
       - "trading/"
+      - ".git/"
+
   safety:
     max_requests_per_second: 0
     timeout_seconds: 10
     retries: 0
-
-alternatives_rejected:
-  - option: "Use install contracts to govern governance changes"
-    rejected_because: "Creates self-blocking evolution or implicit exemptions; both degrade audit posture."
-
-success_criteria:
-  - "Governance changes emit decision_record + snapshot on every run"
-  - "Forbidden domains (secrets/trading) remain untouched"
-  - "CI remains deterministic and reproducible"
 
 alternatives_rejected:
   - option: "Use install contracts to govern governance changes"

@@ -8,15 +8,20 @@ inputs:
     required: false
     default: ""
 
-  contracts-glob:
-    description: "Glob to search decision contracts for autodetection."
-    required: false
-    default: "decisions/contracts/**/*.yaml"
-
   maintenance-contract:
     description: "Contract for self-governance / repo maintenance (bootstrap posture)."
     required: false
     default: "decisions/contracts/DC-REPO-001.yaml"
+
+  install-demo-contract:
+    description: "Docs-only install demo posture (target repos)."
+    required: false
+    default: "decisions/contracts/DC-INSTALL-DEMO-001.yaml"
+
+  example-contract:
+    description: "Example/demo posture (optional fallback when not maintenance and not docs-only)."
+    required: false
+    default: "decisions/contracts/DC-2026-001.yaml"
 
   strict:
     description: "Strict mode blocks on warnings and schema issues."
@@ -38,31 +43,34 @@ runs:
     - name: Install agentic-decision-ledger
       shell: bash
       run: |
+        set -euo pipefail
         python -m pip install --upgrade pip
         python -m pip install ".[dev]"
 
-    - name: Determine contracts to evaluate (route install vs maintenance)
-      id: contracts
+    - name: Determine governing contract (install vs maintenance)
+      id: contract
       shell: bash
       run: |
         set -euo pipefail
 
         INPUT_CONTRACT="${{ inputs.contract }}"
         MAINT="${{ inputs.maintenance-contract }}"
+        INSTALL="${{ inputs.install-demo-contract }}"
+        EXAMPLE="${{ inputs.example-contract }}"
 
         # 1) Explicit override
-        if [ -n "$INPUT_CONTRACT" ]; then
-          echo "contracts=$INPUT_CONTRACT" >> "$GITHUB_OUTPUT"
+        if [ -n "${INPUT_CONTRACT:-}" ]; then
+          echo "contract=$INPUT_CONTRACT" >> "$GITHUB_OUTPUT"
           echo "route=explicit" >> "$GITHUB_OUTPUT"
           exit 0
         fi
 
+        # 2) Compute diff (PR base->head, else last commit)
         BASE_SHA="${{ github.event.pull_request.base.sha }}"
         HEAD_SHA="${{ github.sha }}"
 
-        # If not a PR, fall back to "last commit" diff
         if [ -z "${BASE_SHA:-}" ]; then
-          BASE_SHA="$(git rev-parse HEAD~1 2>/dev/null || echo '')"
+          BASE_SHA="$(git rev-parse HEAD~1 2>/dev/null || true)"
         fi
 
         CHANGED=""
@@ -74,51 +82,68 @@ runs:
         echo "$CHANGED" >> "$GITHUB_OUTPUT"
         echo "EOF" >> "$GITHUB_OUTPUT"
 
-        # 2) Governance paths mean "maintenance posture"
-        # These are the paths that define or enforce governance itself.
-        GOVERNANCE_REGEX='^(\.github/workflows/|integrations/github-action/|adl/engine/|adl/schema/|pyproject\.toml|tests/)'
+        # If we can't detect diffs, default to maintenance (safest posture)
+        if [ -z "${CHANGED:-}" ]; then
+          echo "No changed paths detected; routing to maintenance contract: $MAINT"
+          echo "contract=$MAINT" >> "$GITHUB_OUTPUT"
+          echo "route=fallback_maintenance_no_diff" >> "$GITHUB_OUTPUT"
+          exit 0
+        fi
 
-        if echo "$CHANGED" | grep -Eq "$GOVERNANCE_REGEX"; then
-          echo "Governance change detected. Routing to maintenance contract: $MAINT"
-          echo "contracts=$MAINT" >> "$GITHUB_OUTPUT"
+        # 3) Maintenance posture triggers (this repo is the product/control-plane)
+        # Treat README/docs/examples/scripts/contracts as maintenance because they define the control plane product.
+        if echo "$CHANGED" | grep -Eq '^(README\.md|docs/|examples/|scripts/|decisions/contracts/|\.github/workflows/|integrations/github-action/|adl/|pyproject\.toml|tests/)'; then
+          echo "Maintenance surface change detected; routing to maintenance contract: $MAINT"
+          echo "contract=$MAINT" >> "$GITHUB_OUTPUT"
           echo "route=maintenance" >> "$GITHUB_OUTPUT"
           exit 0
         fi
 
-        # 3) Otherwise: run any changed decision contracts, else fallback to maintenance
-        CHANGED_CONTRACTS="$(echo "$CHANGED" | grep -E '^decisions/contracts/.*\.ya?ml$' || true)"
-
-        if [ -z "$CHANGED_CONTRACTS" ]; then
-          echo "No contract files changed. Falling back to maintenance contract: $MAINT"
-          echo "contracts=$MAINT" >> "$GITHUB_OUTPUT"
-          echo "route=fallback_maintenance" >> "$GITHUB_OUTPUT"
-        else
-          echo "Changed contracts:"
-          echo "$CHANGED_CONTRACTS"
-          echo "contracts=$(echo "$CHANGED_CONTRACTS" | tr '\n' ' ')" >> "$GITHUB_OUTPUT"
-          echo "route=changed_contracts" >> "$GITHUB_OUTPUT"
+        # 4) Install demo posture: docs/artifacts only (target repos)
+        # If ANY changed path is outside docs/ or artifacts/, it's not install-demo.
+        if echo "$CHANGED" | grep -Eq '^(docs/|artifacts/)' && ! echo "$CHANGED" | grep -Eq '^(docs/|artifacts/)$' && ! echo "$CHANGED" | grep -Eq '^(docs/|artifacts/)'; then
+          # unreachable guard (kept intentionally empty)
+          :
         fi
+
+        if ! echo "$CHANGED" | grep -Eq '^(docs/|artifacts/)'; then
+          : # not docs-only
+        else
+          # ensure ALL lines match docs/ or artifacts/
+          if echo "$CHANGED" | grep -Evq '^(docs/|artifacts/)'; then
+            : # not docs-only
+          else
+            echo "Docs-only change detected; routing to install demo contract: $INSTALL"
+            echo "contract=$INSTALL" >> "$GITHUB_OUTPUT"
+            echo "route=install_demo" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+        fi
+
+        # 5) Fallback: example/demo contract
+        echo "Routing to example/demo contract: $EXAMPLE"
+        echo "contract=$EXAMPLE" >> "$GITHUB_OUTPUT"
+        echo "route=example_demo_fallback" >> "$GITHUB_OUTPUT"
+        exit 0
 
     - name: Run admissibility gate (record + artifacts)
       shell: bash
       run: |
         set -euo pipefail
+
         STRICT="${{ inputs.strict }}"
         ART_DIR="${{ inputs.artifacts-dir }}"
-        CONTRACTS="${{ steps.contracts.outputs.contracts }}"
-        ROUTE="${{ steps.contracts.outputs.route }}"
+        CONTRACT="${{ steps.contract.outputs.contract }}"
+        ROUTE="${{ steps.contract.outputs.route }}"
 
         echo "Route: $ROUTE"
-        echo "Evaluating contracts: $CONTRACTS"
+        echo "Evaluating contract: $CONTRACT"
 
-        for c in $CONTRACTS; do
-          echo "==> adl record --contract $c"
-          if [ "$STRICT" = "true" ]; then
-            adl record --contract "$c" --strict --artifacts-dir "$ART_DIR"
-          else
-            adl record --contract "$c" --non-strict --artifacts-dir "$ART_DIR"
-          fi
-        done
+        if [ "$STRICT" = "true" ]; then
+          adl record --contract "$CONTRACT" --strict --artifacts-dir "$ART_DIR"
+        else
+          adl record --contract "$CONTRACT" --non-strict --artifacts-dir "$ART_DIR"
+        fi
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v4

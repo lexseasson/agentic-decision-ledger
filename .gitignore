@@ -6,3 +6,11 @@ __pycache__/
 .pytest_cache/
 artifacts/decision_records/
 artifacts/snapshots/
+
+# Runtime artifacts (generated)
+artifacts/**
+
+# Allow curated samples/templates (override)
+!docs/artifacts_samples/**
+!docs/templates/**
+!artifacts/.keep
