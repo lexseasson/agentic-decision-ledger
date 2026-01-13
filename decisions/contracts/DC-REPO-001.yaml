@@ -16,10 +16,12 @@ intent:
       - "tests and packaging"
       - "repo docs and runbooks"
       - "demo scripts and examples"
+      - "repo hygiene root files"
     excludes:
       - "secrets handling"
       - "trading execution"
       - "credential material"
+      - ".git internal objects"
 
 assumptions:
   - "Self-governance must be explicit and reviewable."
@@ -28,21 +30,31 @@ assumptions:
 constraints:
   bounded_authority:
     can_write_paths:
+      # Governance/control-plane surfaces
       - ".github/workflows/"
       - "integrations/github-action/"
       - "adl/"
       - "tests/"
       - "pyproject.toml"
+
+      # Product documentation + demos (still maintenance-governed)
       - "docs/"
       - "examples/"
       - "scripts/"
       - "README.md"
       - "decisions/contracts/"
       - "artifacts/"
+
+      # Root hygiene files (explicit allowlist)
       - ".gitignore"
+      - ".gitattributes"
+      - ".editorconfig"
+
     cannot_touch:
       - "secrets/"
       - "trading/"
+      - ".git/"
+
   safety:
     max_requests_per_second: 0
     timeout_seconds: 10
