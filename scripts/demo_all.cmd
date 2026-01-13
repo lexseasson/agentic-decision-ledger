@@ -15,7 +15,7 @@ if errorlevel 1 (
   exit /b 1
 )
 
-echo.
+echo(
 echo Running failure mode...
 call "examples\failure_mode\run_demo.cmd"
 if errorlevel 1 (
@@ -23,6 +23,6 @@ if errorlevel 1 (
   exit /b 1
 )
 
-echo.
+echo(
 echo All demos completed. Check artifacts\decision_records and artifacts\snapshots
 exit /b 0

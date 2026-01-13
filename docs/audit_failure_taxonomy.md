@@ -40,6 +40,15 @@ Each category includes:
 
 ---
 
+## Coverage principle (non-negotiable)
+
+This taxonomy is intentionally designed to be:
+- **Deterministic**: computable from contracts + diffs + run metadata (no subjective “AI judgement” required).
+- **Audit-grade**: each conclusion can be traced to evidence in `audit_trail` and hashed steward artifacts.
+- **Operational**: failure categories map to **controls** you can enforce in CI and discuss in an incident review.
+
+---
+
 # A) Core production categories (the “original 6”)
 
 ## A1. Scope creep / authority creep
@@ -189,7 +198,7 @@ Avoid touching forbidden paths directly, but modify a generator/script that prod
 
 **Controls**
 - Treat generator surfaces as governance surfaces (maintenance posture)
-- Add “generated outputs” to audit trail when feasible
+- Record generator-touch as a high-attention signal even if forbidden paths are untouched
 
 **Why hiring managers care**
 This is how real-world policy gets bypassed. Detecting it early saves weeks of incident response.
@@ -201,16 +210,16 @@ This is how real-world policy gets bypassed. Detecting it early saves weeks of i
 Changes appear “safe” (e.g., docs) but influence execution through templating, codegen, or side effects.
 
 **Observable signals**
-- Docs changes that are consumed by build steps to generate code/config
-- Repeated “docs-only” PRs coinciding with behavior changes
+- “Docs-only” diffs that are later correlated with behavior changes
+- Repeated docs-only merges around incidents or regressions (requires portfolio correlation)
 
 **Primary artifacts**
 - `boundary_pressure_report.json` (pressure on docs-only posture)
 - `audit_trail.ndjson` (route + diff strategy for reproducibility)
 
 **Controls**
-- Install-demo posture is strict; product posture routes to maintenance
-- Evidence refs required when docs influence behavior
+- Install-demo posture stays strict; mixed changes must route to maintenance/product posture
+- Evidence refs required when docs claim behavioral changes or KPIs
 
 **Why hiring managers care**
 It prevents the classic “it was just docs” incident.
@@ -231,7 +240,7 @@ Evidence claims (SLO/KPI/security posture) don’t match what’s enforced or me
 
 **Controls**
 - Explicit evidence refs + missing refs list
-- Debt-driven revalidation triggers
+- Debt-driven revalidation triggers (time and/or pressure)
 
 **Why hiring managers care**
 Makes audits survivable and prevents “hand-wavy compliance.”
@@ -248,7 +257,7 @@ The gate itself changes (workflows/action/engine) in ways that weaken enforcemen
 
 **Primary artifacts**
 - `audit_trail.ndjson` (route=maintenance + rationale)
-- `contract_drift_report.json` (if constitutional contract changes)
+- `contract_drift_report.json` (sensitive deltas if the maintenance contract itself changes)
 - `stewardship_summary.md` (flags meta-governance risk)
 
 **Controls**
@@ -265,7 +274,7 @@ Control planes fail when they can be changed “quietly.”
 Base/head selection or event handling yields inconsistent changed paths; governance becomes non-repeatable.
 
 **Observable signals**
-- Different changed path sets across reruns for same PR
+- Different changed path sets across reruns for the same PR
 - Missing/empty base SHA in certain event types
 - Route changes across reruns without code changes
 
@@ -278,7 +287,7 @@ Base/head selection or event handling yields inconsistent changed paths; governa
 
 **Controls**
 - Deterministic diff strategy per event type
-- Record inputs_hash so the run can be reproduced
+- Record `inputs_hash` so the run can be reproduced
 
 **Why hiring managers care**
 A governance system that isn’t deterministic isn’t governance.
@@ -290,7 +299,7 @@ A governance system that isn’t deterministic isn’t governance.
 Artifacts are written but are not cryptographically tied to inputs/run state.
 
 **Observable signals**
-- Missing inputs_hash / artifact_hash
+- Missing `inputs_hash` / `artifact_hash`
 - Artifacts exist without corresponding audit entries
 - Artifact fields inconsistent with changed paths / contract route
 
@@ -316,7 +325,7 @@ Approver/owner identifiers become stale; approvals are unenforceable or meaningl
 **Observable signals**
 - approver value uses placeholders
 - repeated “human:@maintainer_handle” without resolution
-- no mapping to org identity
+- no mapping to org identity (or stale mapping)
 
 **Primary artifacts**
 - `decision_debt_report.json` (owner_ambiguity dimension)
@@ -328,6 +337,35 @@ Approver/owner identifiers become stale; approvals are unenforceable or meaningl
 
 **Why hiring managers care**
 Makes ownership auditable and actionable.
+
+---
+
+## B8. Posture misclassification (wrong contract routed)
+**What it is**  
+The system routes a change to the wrong contract posture (install vs product vs maintenance), producing a false sense of control:
+- overly strict routing blocks legitimate work, or
+- overly permissive routing admits risky work.
+
+**Observable signals**
+- `route` changes for the same change-set across reruns
+- “Docs-only” route when `changed_paths` includes non-doc surfaces (or the opposite)
+- Base SHA missing causes routing to fall back incorrectly
+
+**Primary artifacts**
+- `audit_trail.ndjson`:
+  - route + reason
+  - diff strategy
+  - base/head presence
+  - inputs_hash
+- `stewardship_summary.md` flags “routing instability”
+
+**Controls**
+- Route logic treated as governance surface (maintenance posture)
+- Route reason recorded as evidence; changes to route logic require DC-REPO-001
+- Portfolio correlation can detect repeated posture flips as a systemic risk
+
+**Why hiring managers care**
+Incorrect routing is equivalent to a broken access-control policy: it fails silently and causes real incidents.
 
 ---
 
@@ -345,4 +383,8 @@ Makes ownership auditable and actionable.
 3. Every run should emit artifacts even when the gate fails:
    - failure runs are incident-response gold.
 
----
+4. Portfolio-level governance (separate repo) should aggregate:
+   - boundary pressure trends,
+   - debt/drift rollups,
+   - routing stability,
+   - evidence coverage across contracts.

@@ -2,7 +2,7 @@
 setlocal
 
 echo [HAPPY PATH] forcing an admissible change in docs/ and staging it
-echo.
+echo(
 
 REM Ensure we are in a git repo and move to repo root
 git rev-parse --is-inside-work-tree >nul 2>&1
@@ -15,7 +15,7 @@ if errorlevel 1 (
   exit /b 1
 )
 
-REM Allow only artifacts/ to be dirty (untracked) - everything else must be clean
+REM Allow only artifacts/ to be dirty (untracked). Everything else must be clean.
 call :ASSERT_CLEAN_EXCEPT_ARTIFACTS
 if errorlevel 1 exit /b 1
 
@@ -23,7 +23,7 @@ REM Demo change
 echo demo note>>docs\demo_note.md
 git add docs\demo_note.md >nul 2>&1
 
-echo.
+echo(
 echo Running admissibility gate (record)...
 adl record --contract decisions\contracts\DC-INSTALL-DEMO-001.yaml --strict --artifacts-dir artifacts
 set "RC=%errorlevel%"
@@ -35,7 +35,7 @@ if exist "docs\demo_note.md" del /q "docs\demo_note.md" >nul 2>&1
 
 if not "%RC%"=="0" goto HAPPY_FAILED
 
-echo.
+echo(
 echo Done. Check artifacts\decision_records and artifacts\snapshots
 exit /b 0
 

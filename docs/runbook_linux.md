@@ -1,12 +1,6 @@
-
----
-
-## 3) `docs/runbook_linux.md` completo (pegalo tal cual)
-
-```md
 # Runbook (Linux / bash)
 
-This runbook is optimized for zero-context execution by reviewers and hiring managers.
+This runbook is optimized for **zero-context execution** by reviewers and hiring managers.
 It assumes a POSIX-like shell (bash) and Git.
 
 ## 0) Preconditions
