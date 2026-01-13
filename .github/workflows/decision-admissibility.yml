@@ -21,5 +21,6 @@ jobs:
         with:
           strict: "true"
           artifacts-dir: artifacts
-          contracts-glob: "decisions/contracts/**/*.yaml"
           maintenance-contract: "decisions/contracts/DC-REPO-001.yaml"
+          install-demo-contract: "decisions/contracts/DC-INSTALL-DEMO-001.yaml"
+          example-contract: "decisions/contracts/DC-2026-001.yaml"

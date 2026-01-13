@@ -39,6 +39,7 @@ constraints:
       - "README.md"
       - "decisions/contracts/"
       - "artifacts/"
+      - ".gitignore"
     cannot_touch:
       - "secrets/"
       - "trading/"
