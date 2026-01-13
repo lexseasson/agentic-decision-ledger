@@ -15,7 +15,7 @@ if errorlevel 1 (
   exit /b 1
 )
 
-REM Allow only artifacts/ to be dirty (untracked). Everything else must be clean.
+REM Allow only artifacts/ to be dirty (untracked) - everything else must be clean
 call :ASSERT_CLEAN_EXCEPT_ARTIFACTS
 if errorlevel 1 exit /b 1
 
